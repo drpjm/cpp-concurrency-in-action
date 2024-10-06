@@ -2,13 +2,7 @@
 #include <sstream>
 #include <string>
 #include "spdlog/spdlog.h"
-
-// A simple utility to conver the id to a printable string.
-std::string id_to_str(std::thread::id id){
-    std::ostringstream out_str;
-    out_str << id;
-    return out_str.str();
-}
+#include "utils/utils.hpp"
 
 // A function to say hello! Assumed to be run in a thread.
 void hello(){

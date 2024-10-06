@@ -8,3 +8,4 @@ include(dependencies/get_cpm.cmake)
 include(dependencies/dependencies.cmake)
 
 add_subdirectory(hello_concurrency)
+add_subdirectory(basic_threads)
