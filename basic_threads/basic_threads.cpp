@@ -28,17 +28,20 @@ private:
 
 int main(){
     spdlog::info("Creating new background task...");
-    BackgroundTask back_task1 {10, 600};
-    BackgroundTask back_task2 {15, 325};
+    BackgroundTask back_task1 {10, 1000};
+    BackgroundTask back_task2 {15, 500};
 
     std::thread task_thread1 {back_task1};
     std::thread task_thread2 {back_task2};
     task_thread1.detach();
     task_thread2.detach();
 
+    spdlog::info("Can we join with thread1? {0}", task_thread1.joinable());
+    spdlog::info("Can we join with thread2? {0}", task_thread2.joinable());
+
     bool is_done = false;
     int count = 0;
-    int MAX_COUNT = 10;
+    int MAX_COUNT = 15;
     while (!is_done) {
         auto curr_thread_name = id_to_str(std::this_thread::get_id());
         spdlog::info("Main thread {} running.", curr_thread_name);
