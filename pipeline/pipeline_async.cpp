@@ -39,7 +39,7 @@ int main(){
                     q_t1_t2.push(new_point);
                 }
                 else{
-                    spdlog::info("{} Nothing to work on!", t1_name);
+                    spdlog::warn("{} Nothing to work on!", t1_name);
                 }
                 std::this_thread::sleep_for(std::chrono::milliseconds(500));
             }
@@ -63,7 +63,7 @@ int main(){
                     }
                 }
                 else{
-                    spdlog::info("{} Nothing to work on!", t2_name);
+                    spdlog::warn("{} Nothing to work on!", t2_name);
                 }
                 std::this_thread::sleep_for(std::chrono::milliseconds(500));
             }
@@ -94,4 +94,8 @@ int main(){
 
     }
 
+    spdlog::info("Checking the futures!");
+    spdlog::info("t1 done? {}", t1_done.get());
+    spdlog::info("t2 done? {}", t2_done.get());
+    
 }
