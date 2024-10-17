@@ -16,6 +16,7 @@ enum class Event {
     UNKNOWN
 };
 
+// Just a support function for displaying chosen events.
 std::string event_string(Event event){
     switch (event)
     {
@@ -32,7 +33,7 @@ std::string event_string(Event event){
     }
 }
 
-// Thanks to Dr. Hank!
+// Thanks Dr. Hank!
 class View {
     public:
         void prompt(){
@@ -61,40 +62,68 @@ class View {
         }
 };
 
-void task(std::atomic<bool> is_canceled){
+// Need a reference to the atomic bool to allow for external signaling.
+int task(int start_value, std::atomic_bool& is_canceled){
     spdlog::info("Task starting!\n");
-    while(!is_canceled){
-        std::this_thread::sleep_for(std::chrono::milliseconds(250));
+    int task_counter = start_value;
+    while(!is_canceled and task_counter < 1000){
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        if (task_counter % 100 == 0){
+            spdlog::info("Task running... task_counter = {}", task_counter);
+        }
+        task_counter++;
     }
+    return task_counter;
 }
 
 int main(){
-    std::atomic<bool> task_cancelled { false };
-    std::thread task_thread;
+    std::mt19937_64 mt { 42 };  // Create the random number engine with a seed
+    std::uniform_int_distribution<int> rand_int {10, 100};
+
+    std::atomic_bool task_cancelled { false };
+    // Used if you want to control a thread yourself.
+    // std::thread task_thread;
+    // Used to get the result using a future.
+    std::future<int> task_result;
     spdlog::info("Let's pretend! Event loop!");
+    
     View ui {};
 
     while (true){
         // A text UI to imitate getting an event.
         ui.prompt();
         auto input_event = ui.get_input();
-        spdlog::info("Received {}", event_string(input_event));
+        spdlog::info("User entered {}", event_string(input_event));
         // Process the incoming event
         if (input_event == Event::QUIT){
             break;
         }
         else if (input_event == Event::START){
             task_cancelled = false;
-            std::thread new_task {task, std::ref(task_cancelled)};
+            // Raw thread implementation - cannot get result easily.
+            // std::thread new_task {task, rand_int(mt), std::ref(task_cancelled)};
             // task_thread = std::move(new_task);
+
+            // Lean on async to get a future to get results.
+            task_result = std::async(
+                std::launch::async,
+                task,
+                rand_int(mt),
+                std::ref(task_cancelled)
+            );
         }
         else if (input_event == Event::STOP){
             task_cancelled = true;
-            task_thread.join();
+            auto result = task_result.get();
+            spdlog::warn("Stopped task early. result = {}", result);
+            // task_thread.join();
         }
         else if (input_event == Event::COMPLETE){
-            task_thread.join();
-            // display_results();
+            spdlog::info("Waiting for completion...");
+            task_result.wait();
+            auto result = task_result.get();
+            spdlog::info("Done! result = {}", result);
+            // task_thread.join();
             break;
         }
     }
