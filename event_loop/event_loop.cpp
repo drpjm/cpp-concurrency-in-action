@@ -73,6 +73,9 @@ int task(int start_value, std::atomic_bool& is_canceled){
         }
         task_counter++;
     }
+    if(is_canceled){
+        spdlog::warn("Task canceled!");
+    }
     return task_counter;
 }
 
