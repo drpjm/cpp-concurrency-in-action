@@ -50,20 +50,16 @@ int main(){
     auto t2_done = std::async(
         [&q_t1_t2, t2_name] {
             while (true) {
-                if(!q_t1_t2.empty()){
-                    auto point = q_t1_t2.wait_and_pop();
-                    // The Point2D is wrapped in a shared_ptr, so you need to unpack it as a pointer.
-                    auto x_val = point.get()->get_x();
-                    auto y_val = point.get()->get_y();
-                    spdlog::info("{0} received point ({1},{2})", t2_name, x_val, y_val);
-                    if ( (x_val == std::numeric_limits<float>::max()) 
-                            && (y_val == std::numeric_limits<float>::max()) ) {
-                        spdlog::info("{} Poison pill message! All done.", t2_name);
-                        return true;
-                    }
-                }
-                else{
-                    spdlog::warn("{} Nothing to work on!", t2_name);
+
+                auto point = q_t1_t2.wait_and_pop();
+                // The Point2D is wrapped in a shared_ptr, so you need to unpack it as a pointer.
+                auto x_val = point.get()->get_x();
+                auto y_val = point.get()->get_y();
+                spdlog::info("{0} received point ({1},{2})", t2_name, x_val, y_val);
+                if ( (x_val == std::numeric_limits<float>::max()) 
+                        && (y_val == std::numeric_limits<float>::max()) ) {
+                    spdlog::info("{} Poison pill message! All done.", t2_name);
+                    return true;
                 }
                 std::this_thread::sleep_for(std::chrono::milliseconds(500));
             }
