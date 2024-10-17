@@ -85,6 +85,7 @@ int main(){
     // std::thread task_thread;
     // Used to get the result using a future.
     std::future<int> task_result;
+    bool is_task_started = false;
     spdlog::info("Let's pretend! Event loop!");
     
     View ui {};
@@ -96,9 +97,12 @@ int main(){
         spdlog::info("User entered {}", event_string(input_event));
         // Process the incoming event
         if (input_event == Event::QUIT){
+            if (is_task_started){
+                task_cancelled = true;
+            }
             break;
         }
-        else if (input_event == Event::START){
+        else if (input_event == Event::START && !is_task_started){
             task_cancelled = false;
             // Raw thread implementation - cannot get result easily.
             // std::thread new_task {task, rand_int(mt), std::ref(task_cancelled)};
@@ -111,20 +115,22 @@ int main(){
                 rand_int(mt),
                 std::ref(task_cancelled)
             );
+            is_task_started = true;
         }
-        else if (input_event == Event::STOP){
+        else if (input_event == Event::STOP && is_task_started){
             task_cancelled = true;
             auto result = task_result.get();
             spdlog::warn("Stopped task early. result = {}", result);
             // task_thread.join();
+            is_task_started = false;
         }
-        else if (input_event == Event::COMPLETE){
+        else if (input_event == Event::COMPLETE && is_task_started){
             spdlog::info("Waiting for completion...");
             task_result.wait();
             auto result = task_result.get();
             spdlog::info("Done! result = {}", result);
             // task_thread.join();
-            break;
+            is_task_started = false;
         }
     }
 
